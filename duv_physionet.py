@@ -57,7 +57,7 @@ def get_physio(args, device):
         train_data,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=4,
+        num_workers=0,
         collate_fn=lambda batch: variable_time_collate_fn2(
             batch, args, device, data_type="train", data_min=data_min, data_max=data_max
         ),
@@ -66,7 +66,7 @@ def get_physio(args, device):
         test_data,
         batch_size=n_samples,
         shuffle=False,
-        num_workers=4,
+        num_workers=0,
         collate_fn=lambda batch: variable_time_collate_fn2(
             batch, args, device, data_type="test", data_min=data_min, data_max=data_max
         ),

@@ -4,7 +4,8 @@ import os
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
-from pytorch_lightning.metrics.functional import accuracy, auroc
+#from pytorch_lightning.metrics.functional import accuracy, auroc
+from torchmetrics.functional import accuracy, auroc
 from torch_cfc import Cfc
 from pytorch_lightning.callbacks import ModelCheckpoint
 import torch.nn.functional
@@ -52,7 +53,7 @@ class PhysionetLearner(pl.LightningModule):
         y = y.view(-1)
         loss = self.loss_fn(y_hat, y)
         preds = torch.argmax(y_hat.detach(), dim=-1)
-        acc = accuracy(preds, y)
+        acc = accuracy(preds, y, task='binary')
         self.log("train_acc", acc, prog_bar=True)
         self.log("train_loss", loss, prog_bar=True)
         return loss
@@ -67,7 +68,7 @@ class PhysionetLearner(pl.LightningModule):
         loss = self.loss_fn(y_hat, y)
 
         preds = torch.argmax(y_hat, dim=1)
-        acc = accuracy(preds, y)
+        acc = accuracy(preds, y, task='binary')
         softmax = torch.nn.functional.softmax(y_hat, dim=1)[:, 1]
         self.log("val_loss", loss, prog_bar=True)
         self.log("val_acc", acc, prog_bar=True)
@@ -77,7 +78,7 @@ class PhysionetLearner(pl.LightningModule):
         all_preds = torch.cat([l[0] for l in validation_step_outputs])
         all_labels = torch.cat([l[1] for l in validation_step_outputs])
 
-        auc = auroc(all_preds, all_labels, pos_label=1)
+        auc = auroc(all_preds, all_labels, task='binary')
         self._all_rocs.append(auc)
         self.log("val_rocauc", auc, prog_bar=True)
 
@@ -159,15 +160,17 @@ def eval(hparams, speed=False):
     train_loader = data_obj["train_dataloader"]
     test_loader = data_obj["test_dataloader"]
 
-    gpu_name = "cpu"
-    if "CUDA_VISIBLE_DEVICES" in os.environ.keys():
-        gpu_name = str(os.environ["CUDA_VISIBLE_DEVICES"])
+    #gpu_name = "cpu"
+    #if "CUDA_VISIBLE_DEVICES" in os.environ.keys():
+    #    gpu_name = str(os.environ["CUDA_VISIBLE_DEVICES"])
+    gpu_name = 'mps'
 
     trainer = pl.Trainer(
         max_epochs=hparams["epochs"],
         gradient_clip_val=hparams["clipnorm"],
         gpus=1,
         callbacks=[SpeedCallback()] if speed else None,
+        accelerator='mps'
     )
     trainer.fit(
         learner,
