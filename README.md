@@ -1,3 +1,5 @@
+**See initial commit changes for the corrections I made to make scripts work on M-series Macs. The example train_physio.py script (and its associated duv-physionet.py) is the only one I made corrections to; these changes should provide insight into how to modify the other scripts, if needed.**
+
 # Closed-form Continuous-time Models
 
 Closed-form Continuous-time Neural Networks (CfCs) are powerful sequential liquid neural information processing units. 
